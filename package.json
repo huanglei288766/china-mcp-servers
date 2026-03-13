@@ -11,7 +11,7 @@
     "dev": "npm run dev -w packages/feishu-mcp",
     "test": "npm run test --workspaces"
   },
-  "keywords": ["mcp", "china", "feishu", "dingtalk", "claude"],
+  "keywords": ["mcp", "china", "feishu", "dingtalk", "wecom", "claude"],
   "author": "huanglei288766",
   "license": "MIT"
 }
