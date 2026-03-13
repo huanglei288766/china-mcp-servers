@@ -44,7 +44,9 @@ export class DingTalkClient {
   // 获取企业 access_token（自动续期）
   private async getAccessToken(): Promise<string> {
     if (!this.config.appKey || !this.config.appSecret) {
-      throw new Error("企业应用模式需要设置 DINGTALK_APP_KEY 和 DINGTALK_APP_SECRET");
+      throw new Error(
+        "企业应用模式需要设置 DINGTALK_APP_KEY 和 DINGTALK_APP_SECRET",
+      );
     }
     if (this.accessToken && Date.now() < this.tokenExpireAt - 60_000) {
       return this.accessToken;
@@ -66,7 +68,7 @@ export class DingTalkClient {
     content: string,
     msgType: string = "text",
     atMobiles?: string[],
-    atAll: boolean = false
+    atAll: boolean = false,
   ) {
     if (!this.config.webhookUrl) {
       throw new Error("Webhook 模式需要设置 DINGTALK_WEBHOOK_URL");
@@ -83,7 +85,10 @@ export class DingTalkClient {
     } else if (msgType === "markdown") {
       body = {
         msgtype: "markdown",
-        markdown: { title: content.split("\n")[0].replace(/^#+\s*/, ""), text: content },
+        markdown: {
+          title: content.split("\n")[0].replace(/^#+\s*/, ""),
+          text: content,
+        },
         at: { atMobiles: atMobiles ?? [], isAtAll: atAll },
       };
     } else {
@@ -91,13 +96,13 @@ export class DingTalkClient {
     }
 
     // 如果 Webhook URL 包含 timestamp + sign 签名要求
-    const url = await this.signWebhookUrl(this.config.webhookUrl);
+    const url = this.signWebhookUrl(this.config.webhookUrl);
     const res = await axios.post(url, body);
     return res.data;
   }
 
   // 钉钉机器人签名（安全模式）
-  private async signWebhookUrl(webhookUrl: string): Promise<string> {
+  private signWebhookUrl(webhookUrl: string): string {
     const timestamp = Date.now();
     const secret = process.env.DINGTALK_WEBHOOK_SECRET;
     if (!secret) return webhookUrl;
@@ -113,10 +118,7 @@ export class DingTalkClient {
 
   // ─── 工作通知 ───────────────────────────────────────────
 
-  async sendWorkNotice(
-    userIdList: string[],
-    msg: Record<string, unknown>
-  ) {
+  async sendWorkNotice(userIdList: string[], msg: Record<string, unknown>) {
     const token = await this.getAccessToken();
     const res = await this.http.post(
       "/topapi/message/corpconversation/asyncsend_v2",
@@ -125,7 +127,7 @@ export class DingTalkClient {
         userid_list: userIdList.join(","),
         msg,
       },
-      { params: { access_token: token } }
+      { params: { access_token: token } },
     );
     return res.data;
   }
@@ -137,7 +139,7 @@ export class DingTalkClient {
     const res = await this.http.post(
       "/topapi/v2/user/getbymobile",
       { mobile },
-      { params: { access_token: token } }
+      { params: { access_token: token } },
     );
     return res.data;
   }
@@ -164,7 +166,7 @@ export class DingTalkClient {
         ],
         form_component_values: params.formValues,
       },
-      { params: { access_token: token } }
+      { params: { access_token: token } },
     );
     return res.data;
   }
@@ -174,7 +176,7 @@ export class DingTalkClient {
     const res = await this.http.post(
       "/topapi/processinstance/get",
       { process_instance_id: processInstanceId },
-      { params: { access_token: token } }
+      { params: { access_token: token } },
     );
     return res.data;
   }
@@ -202,7 +204,7 @@ export class DingTalkClient {
     const res = await this.newHttp.post(
       "/v1.0/calendar/users/me/calendars/primary/events",
       body,
-      { headers: { "x-acs-dingtalk-access-token": token } }
+      { headers: { "x-acs-dingtalk-access-token": token } },
     );
     return res.data;
   }

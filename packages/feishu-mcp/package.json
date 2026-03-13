@@ -7,10 +7,12 @@
   "bin": {
     "feishu-mcp": "dist/index.js"
   },
+  "files": ["dist"],
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
     "test": "jest",
     "lint": "eslint src --ext .ts"
   },
@@ -19,8 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "axios": "^1.6.0",
-    "zod": "^3.22.0"
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

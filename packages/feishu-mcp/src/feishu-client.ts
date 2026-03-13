@@ -34,7 +34,7 @@ export class FeishuClient {
 
     const res = await this.http.post<TokenResponse>(
       "/auth/v3/tenant_access_token/internal",
-      { app_id: this.appId, app_secret: this.appSecret }
+      { app_id: this.appId, app_secret: this.appSecret },
     );
 
     if (res.data.code !== 0) {
@@ -57,7 +57,7 @@ export class FeishuClient {
     receiveId: string,
     receiveIdType: string,
     content: string,
-    msgType: string = "text"
+    msgType: string = "text",
   ) {
     const headers = await this.authHeaders();
 
@@ -68,7 +68,7 @@ export class FeishuClient {
     const res = await this.http.post(
       `/im/v1/messages?receive_id_type=${receiveIdType}`,
       { receive_id: receiveId, msg_type: msgType, content: messageContent },
-      { headers }
+      { headers },
     );
     return res.data;
   }
@@ -93,15 +93,32 @@ export class FeishuClient {
 
   async createDoc(title: string, content: string = "", folderToken?: string) {
     const headers = await this.authHeaders();
-    const res = await this.http.post(
+    // Step 1: 创建空文档
+    const createRes = await this.http.post(
       "/docx/v1/documents",
-      {
-        folder_token: folderToken,
-        title,
-      },
-      { headers }
+      { folder_token: folderToken, title },
+      { headers },
     );
-    return res.data;
+    const documentId = createRes.data?.data?.document?.document_id;
+
+    // Step 2: 如果有内容，通过 blocks API 写入
+    if (content && documentId) {
+      const blockId = createRes.data?.data?.document?.document_id;
+      await this.http.post(
+        `/docx/v1/documents/${documentId}/blocks/${blockId}/children`,
+        {
+          children: [
+            {
+              block_type: 2, // text block
+              text: { elements: [{ text_run: { content } }] },
+            },
+          ],
+        },
+        { headers },
+      );
+    }
+
+    return createRes.data;
   }
 
   async getDoc(documentId: string) {
@@ -117,17 +134,17 @@ export class FeishuClient {
   async getCalendarEvents(startTime: string, endTime: string) {
     const headers = await this.authHeaders();
     // 先获取主日历 ID
-    const calRes = await this.http.get("/calendar/v4/calendars/primary", {
+    const calRes = await this.http.get("/calendar/v4/calendars", {
       headers,
     });
-    const calendarId = calRes.data?.data?.calendar?.calendar_id;
+    const calendarId = calRes.data?.data?.calendar_list?.[0]?.calendar_id;
 
     const res = await this.http.get(
       `/calendar/v4/calendars/${calendarId}/events`,
       {
         headers,
         params: { start_time: startTime, end_time: endTime },
-      }
+      },
     );
     return res.data;
   }
@@ -140,10 +157,10 @@ export class FeishuClient {
     attendees?: string[];
   }) {
     const headers = await this.authHeaders();
-    const calRes = await this.http.get("/calendar/v4/calendars/primary", {
+    const calRes = await this.http.get("/calendar/v4/calendars", {
       headers,
     });
-    const calendarId = calRes.data?.data?.calendar?.calendar_id;
+    const calendarId = calRes.data?.data?.calendar_list?.[0]?.calendar_id;
 
     const body: Record<string, unknown> = {
       summary: event.summary,
@@ -162,7 +179,7 @@ export class FeishuClient {
     const res = await this.http.post(
       `/calendar/v4/calendars/${calendarId}/events`,
       body,
-      { headers }
+      { headers },
     );
     return res.data;
   }
@@ -180,13 +197,13 @@ export class FeishuClient {
     if (task.assignee_id)
       body.collaborator_ids = [{ id: task.assignee_id, type: "user" }];
 
-    const res = await this.http.post("/task/v1/tasks", body, { headers });
+    const res = await this.http.post("/task/v2/tasks", body, { headers });
     return res.data;
   }
 
   async listTasks(pageSize: number = 20) {
     const headers = await this.authHeaders();
-    const res = await this.http.get("/task/v1/tasks", {
+    const res = await this.http.get("/task/v2/tasks", {
       headers,
       params: { page_size: pageSize },
     });
