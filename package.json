@@ -1,0 +1,17 @@
+{
+  "name": "china-mcp-servers",
+  "version": "0.1.0",
+  "description": "中国主流服务的 MCP Server 集合",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev -w packages/feishu-mcp",
+    "test": "npm run test --workspaces"
+  },
+  "keywords": ["mcp", "china", "feishu", "dingtalk", "claude"],
+  "author": "huanglei288766",
+  "license": "MIT"
+}
