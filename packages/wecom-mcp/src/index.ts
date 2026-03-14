@@ -23,10 +23,12 @@ const AGENT_ID = process.env.WECOM_AGENT_ID;
 if (!WEBHOOK_KEY && (!CORP_ID || !CORP_SECRET)) {
   console.error("错误: 请至少设置以下环境变量之一：");
   console.error("  Webhook 模式: WECOM_WEBHOOK_KEY");
-  console.error("  应用模式:     WECOM_CORP_ID + WECOM_CORP_SECRET + WECOM_AGENT_ID");
+  console.error(
+    "  应用模式:     WECOM_CORP_ID + WECOM_CORP_SECRET + WECOM_AGENT_ID",
+  );
   console.error("");
   console.error(
-    "获取方式: 访问 https://work.weixin.qq.com 企业微信管理后台创建应用或群机器人",
+    "获取方式: 访问 https://work.weixin.qq.com 企业微信管理控制台创建应用或群机器人",
   );
   process.exit(1);
 }
